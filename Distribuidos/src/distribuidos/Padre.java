@@ -24,7 +24,7 @@ import java.util.Scanner;
  */
 public class Padre {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
 
         /*Servidor*/
         //Variables
@@ -48,7 +48,7 @@ public class Padre {
          (3) Creación de stream para la comunicación del padre con el hijo
          (4) Padre realizando consultas a las particiones
          */
-        /* CREACIÓN DE PARTICIONES(THREADS) Y PIPES PARA LA COMUNICACIÓN CON EL PADRE*/
+ /* CREACIÓN DE PARTICIONES(THREADS) Y PIPES PARA LA COMUNICACIÓN CON EL PADRE*/
         try {
 
             //(1)INICIO CREANDO PIPES DE COMUNICACIÓN IDA Y VUELTA
@@ -131,122 +131,144 @@ public class Padre {
 //            System.out.println("Exiting Father");
             Socket connectionSocket = acceptSocket.accept();
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-            while (true) {
-                    //SERVIDOR
+            boolean t = true;
+            String fin = "end";
+            while (t) {
+                //SERVIDOR
                 //Socket listo para recibir 
-                
+
                 //Buffer para recibir desde el cliente
-                
                 //Buffer para enviar al cliente
                 DataOutputStream outToClient = new DataOutputStream(connectionSocket.getOutputStream());
                 System.out.println("Servidor leyendo socket");
                 //Recibimos el dato del cliente y lo mostramos en el server
                 fromClient = inFromClient.readLine();
                 System.out.println("Received: " + fromClient);
- 
+                String gato = fromClient;
+                if (gato.equals("fin")) {
+                    fin = "fin";
+                } else {
 
-                //fin recibir del cliente
+                    //fin recibir del cliente
 //                System.out.println("===== ===== ===== ===== =====");
 //                System.out.println("Ingrese la petición: ");
 //                Scanner in = new Scanner(System.in);
-                String j = fromClient; //j será la petición que hagan 
-                //System.out.println(j);
-                //String j = "GET /respuestas/j";
-                String[] requests = {j};
+                    String j = fromClient; //j será la petición que hagan 
+                    //System.out.println(j);
+                    //String j = "GET /respuestas/j";
+                    String[] requests = {j};
 
-                for (int i = 0; i < requests.length; i++) {
-                    System.out.println("===== ===== ===== ===== =====");
+                    for (int i = 0; i < requests.length; i++) {
+                        System.out.println("===== ===== ===== ===== =====");
 
-                    String request = requests[i];
+                        String request = requests[i];
 
-                    String[] tokens = request.split(" ");
-                    String parametros = tokens[1];
+                        String[] tokens = request.split(" ");
 
-                    String http_method = tokens[0];
+                        String parametros = tokens[1];
 
-                    String[] tokens_parametros = parametros.split("/");
+                        String http_method = tokens[0];
 
-                    String resource = tokens_parametros.length > 1 ? tokens_parametros[1] : "";
-                    String id = tokens_parametros.length > 2 ? tokens_parametros[2] : "";
+                        String[] tokens_parametros = parametros.split("/");
 
-                    String meta_data = tokens.length > 2 ? tokens[2] : "/n";
+                        String resource = tokens_parametros.length > 1 ? tokens_parametros[1] : "";
+                        String id = tokens_parametros.length > 2 ? tokens_parametros[2] : "";
 
-                    System.out.println("Consulta: " + request);
-                    System.out.println("HTTP METHOD: " + http_method);
-                    System.out.println("Resource: " + resource);
-                    System.out.println("ID:          " + id);
-                    System.out.println("META DATA:    " + meta_data);
-                    switch (http_method) {
-                        case "GET":
-                            if (id == "") {
-                                System.out.println("Buscando en la base de datos los ultimos 10 registros de tipo '" + resource + "'");
-                            } else {
-                                System.out.println("Buscando en el cache el registro con id " + id);
-                                char letraBuscar = id.charAt(0);
-                                buscarEnParticion = (b.buscarHash("" + letraBuscar) - 1);
+                        String meta_data = tokens.length > 2 ? tokens[2] : "";
+                        String siguiente = tokens.length > 3 ? tokens[3] : "";
+                        if (siguiente != null) {
+                            meta_data = meta_data + " " + siguiente;
+                        }
+
+                        System.out.println("Consulta: " + request);
+                        System.out.println("HTTP METHOD: " + http_method);
+                        System.out.println("Resource: " + resource);
+                        System.out.println("ID:          " + id);
+                        System.out.println("META DATA:    " + meta_data);
+                        switch (http_method) {
+                            case "GET":
+                                if (id == "" || resource == "" || request == "") {
+                                    System.out.println("Not a valid HTTP Request");
+                                    outToClient.writeBytes("Not a valid HTTP Request" + '\n');
+                                } else {
+                                    System.out.println("Buscando en el cache el registro con id " + id);
+                                    char letraBuscar = id.charAt(0);
+                                    buscarEnParticion = (b.buscarHash("" + letraBuscar) - 1);
+                                    System.out.println("Searching: " + id + ", There's in P: " + (buscarEnParticion + 1));
+                                    //mandamos el largo de la consulta a buscar en cache
+                                    largoQuery = id.length();
+                                    System.out.println("Father writing lengthQ: " + largoQuery);
+                                    fatherWriter[buscarEnParticion].writeInt(largoQuery);
+                                    //fin de envío de tamaño
+                                    //Segundo pasando la consulta
+                                    System.out.println("Father writing Query: " + id);
+                                    fatherWriter[buscarEnParticion].writeChars(id);
+
+                                    System.out.println("Father reading");
+                                    result = "";
+                                    largoQ = fatherReader[buscarEnParticion].readInt();
+                                    System.out.println(largoQ);
+                                    while (largoQ != 0) {
+                                        data = fatherReader[buscarEnParticion].readChar();
+                                        result = result + (char) data;
+                                        largoQ--;
+
+                                    }
+
+                                    System.out.println("Padre got from P: " + (buscarEnParticion + 1) + " Reply: " + result);
+                                    outToClient.writeBytes(result + '\n');
+                                }
+                                break;
+                            case "POST":
+                                System.out.println("Guardando consulta con los siguientes datos: (" + meta_data + ")");
+                                String Post = id + "/" + meta_data;
+                                int larguito = Post.length();
+                                char letrita = id.charAt(0);
+                                buscarEnParticion = (b.buscarHash("" + letrita) - 1);
                                 System.out.println("Searching: " + id + ", There's in P: " + (buscarEnParticion + 1));
                                 //mandamos el largo de la consulta a buscar en cache
-                                largoQuery = id.length();
+                                largoQuery = Post.length();
                                 System.out.println("Father writing lengthQ: " + largoQuery);
                                 fatherWriter[buscarEnParticion].writeInt(largoQuery);
-                                //fin de envío de tamaño
-                                //Segundo pasando la consulta
-                                System.out.println("Father writing Query: " + id);
-                                fatherWriter[buscarEnParticion].writeChars(id);
+
+                                System.out.println("Father writing Query: " + Post);
+                                fatherWriter[buscarEnParticion].writeChars(Post);
 
                                 System.out.println("Father reading");
                                 result = "";
                                 largoQ = fatherReader[buscarEnParticion].readInt();
-                                System.out.println(largoQ);
                                 while (largoQ != 0) {
                                     data = fatherReader[buscarEnParticion].readChar();
                                     result = result + (char) data;
                                     largoQ--;
-
                                 }
-                                
                                 System.out.println("Padre got from P: " + (buscarEnParticion + 1) + " Reply: " + result);
-                                outToClient.writeBytes(result+'\n');
-                            }
-                            break;
-                        case "POST":
-                            System.out.println("Guardando consulta con los siguientes datos: (" + meta_data + ")");
-                            System.out.println("ESTAMOS TRABAJANDO PARA USTED");
-                            String Post = id + "/" + meta_data;
-                            int larguito = Post.length();
-                            char letrita = id.charAt(0);
-                            buscarEnParticion = (b.buscarHash("" + letrita) - 1);
-                            System.out.println("Searching: " + id + ", There's in P: " + (buscarEnParticion + 1));
-                            //mandamos el largo de la consulta a buscar en cache
-                            largoQuery = Post.length();
-                            System.out.println("Father writing lengthQ: " + largoQuery);
-                            fatherWriter[buscarEnParticion].writeInt(largoQuery);
+                                //Se le envia al cliente
+                                outToClient.writeBytes(result + "\n");
 
-                            System.out.println("Father writing Query: " + Post);
-                            fatherWriter[buscarEnParticion].writeChars(Post);
+                                break;
+                            default:
+                                System.out.println("Not a valid HTTP Request");
+                                String resultado = "Not a valid HTTP Request";
+                                outToClient.writeBytes("Not a valid HTTP Request" + '\n');
+                                break;
+                        }
 
-                            System.out.println("Father reading");
-                            result = "";
-                            largoQ = fatherReader[buscarEnParticion].readInt();
-                            while (largoQ != 0) {
-                                data = fatherReader[buscarEnParticion].readChar();
-                                result = result + (char) data;
-                                largoQ--;
-                            }
-                            System.out.println("Padre got from P: " + (buscarEnParticion + 1) + " Reply: " + result);
-                            //Se le envia al cliente
-                            outToClient.writeBytes(result+"\n");
-
-                            break;
-                        default:
-                            System.out.println("Not a valid HTTP Request");
-                            break;
                     }
-
                 }
-                
-               
+
+                if (fin.equals("fin")) {
+                    t = false;
+                    System.out.println("entre");
+                    int fin1=3;
+                    for (int i = 0; i < canParticiones; i++) {
+                        fatherWriter[i].writeInt(fin1);
+                        fatherWriter[i].writeChars("fin");
+                    }
+                    
+                }
             }
+            System.out.println("sali");
 //            
 //            //Consultas a caches
 //            int msgPart = 3;
@@ -275,6 +297,8 @@ public class Padre {
             //while (true);
         } catch (IOException e) {
         }
+        System.out.println("terminé");
+        
     }
-
+    
 }

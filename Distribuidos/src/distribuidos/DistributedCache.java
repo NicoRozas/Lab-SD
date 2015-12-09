@@ -37,7 +37,8 @@ public class DistributedCache extends Thread {
     @Override
     public void run() {
         int i = 0;
-        for (;;) {
+        boolean tru=true;
+        while (tru) {
             try {
 
                 //Capturando consulta realizada por el padre
@@ -60,94 +61,102 @@ public class DistributedCache extends Thread {
                 }
                 
                 String answer = query1;
-                
-                System.out.println("P :" + this.idx + " readed: " + query);
-                if(answer!=null){
-                    System.out.println("P :" + this.idx + " readed: " + answer);
-                }
-
-                //REALIZANDO BUSQUEDA DENTRO DEL CACHE ESTATICO 
-                System.out.println("P :" + this.idx + " searching in static cache "+query);
-                String resultadoEstatico = estatico.buscarEnCache(query);
-                dinamico.imprimir();
-                String resultadoDinamico = "";
-                
-                //LLENANDO CACHE ESTÁTICO CADA 10 CONSULTAS REALIZADAS
-                i++;
-                if (i == 10) {
-                    i = 0;
-                    System.out.println("copiar dinamico a estático");
-                    System.out.println("vaciar cache dinámico");
-                    dinamico.sacarDatosEs(estatico);
-                    dinamico.sacarDatos();
-                    System.out.println("así quedo el cache dinámico: ");
-                    dinamico.imprimir();
-                    System.out.println("Cache estatico quedó así:");
-                    estatico.imprimir();
-                }
-                //FIN LLENADO DE CACHE ESTÁTICO DESPUÉS DE 10 CONSULTAS
-
-                if (resultadoEstatico.equals("Miss")) {
-                    System.out.println("P: " + this.idx + " There isn't in static cache");
-                    System.out.println("P :" + this.idx + " searching in dynamic cache");
-                    resultadoDinamico = dinamico.BuscarEnCache(query);
-;
-                    if (resultadoDinamico.equals("Miss")) {
-                        System.out.println("P: " + this.idx + " There isn't into dynamic cache then...");
-                        //si tiene ANSWER
-                        if (answer != null) {
-                            System.out.println("P: " + this.idx + " Inserting into dynamic cache");
-//                        INSERTAR EN CACHE DINAMICO
-                            System.out.println("insertando: "+query+" respuesta: "+answer);
-                            dinamico.InsertarEnCache(answer, query);
-                            System.out.println("Particion: " + this.idx + " tiene el cache así: ");
-                            dinamico.imprimir();
-                        }
-
-                        String charcha = "Miss";
-                        System.out.println("P :" + this.idx + " writing: " + charcha);
-                        int lenQ = charcha.length();
-                        out.writeInt(lenQ);
-                        out.writeChars(charcha);
-                        sleep(5000);
-
-                    } else {
-                        System.out.println("P: " + this.idx + "reply from dynamic cache");
-                        System.out.println("P: " + this.idx + " writing: " + resultadoDinamico);
+                if(query.equals("fin"))
+                {
+                    tru=false;
                     
-                        dinamico.InsertarEnCache(query, resultadoDinamico);
-                        System.out.println("así quedó: ");
-                        dinamico.imprimir();
-                        System.out.println("Tamaño: "+resultadoDinamico.length());
-                        out.writeInt(resultadoDinamico.length());
-                        out.writeChars(resultadoDinamico);
-                        out.flush();
-                        System.out.println("P: " + this.idx + " done");
-                        sleep(1000);
+                    
+                }
+                else{
+                
+                    System.out.println("P :" + this.idx + " readed: " + query);
+                    if(answer!=null){
+                        System.out.println("P :" + this.idx + " readed: " + answer);
                     }
 
-                } else {
-                    //Respondiendo al padre
-                    System.out.println("P: " + this.idx + "reply from static cache");
-                    System.out.println("P :" + this.idx + " writing: " + resultadoEstatico);
-                    
-                    dinamico.InsertarEnCache(query, resultadoEstatico);
-                    System.out.println("así quedó: ");
+                    //REALIZANDO BUSQUEDA DENTRO DEL CACHE ESTATICO 
+                    System.out.println("P :" + this.idx + " searching in static cache "+query);
+                    String resultadoEstatico = estatico.buscarEnCache(query);
                     dinamico.imprimir();
-                    out.writeInt(resultadoEstatico.length());
-                    out.writeChars(resultadoEstatico);
-                    out.flush();
-                    System.out.println("P: " + this.idx + " done");
-                    sleep(1000);
-                }
-                sleep(1000);
-                System.out.println("P :" + this.idx + " exiting");
+                    String resultadoDinamico = "";
 
+                    //LLENANDO CACHE ESTÁTICO CADA 10 CONSULTAS REALIZADAS
+                    i++;
+                    if (i == 10) {
+                        i = 0;
+                        System.out.println("copiar dinamico a estático");
+                        System.out.println("vaciar cache dinámico");
+                        dinamico.sacarDatosEs(estatico);
+                        dinamico.sacarDatos();
+                        System.out.println("así quedo el cache dinámico: ");
+                        dinamico.imprimir();
+                        System.out.println("Cache estatico quedó así:");
+                        estatico.imprimir();
+                    }
+                    //FIN LLENADO DE CACHE ESTÁTICO DESPUÉS DE 10 CONSULTAS
+
+                    if (resultadoEstatico.equals("Miss")) {
+                        System.out.println("P: " + this.idx + " There isn't in static cache");
+                        System.out.println("P :" + this.idx + " searching in dynamic cache");
+                        resultadoDinamico = dinamico.BuscarEnCache(query);
+    ;
+                        if (resultadoDinamico.equals("Miss")) {
+                            System.out.println("P: " + this.idx + " There isn't into dynamic cache then...");
+                            //si tiene ANSWER
+                            if (answer != null) {
+                                System.out.println("P: " + this.idx + " Inserting into dynamic cache");
+    //                        INSERTAR EN CACHE DINAMICO
+                                System.out.println("insertando: "+query+" respuesta: "+answer);
+                                dinamico.InsertarEnCache(answer, query);
+                                System.out.println("Particion: " + this.idx + " tiene el cache así: ");
+                                dinamico.imprimir();
+                            }
+
+                            String charcha = "Miss";
+                            System.out.println("P :" + this.idx + " writing: " + charcha);
+                            int lenQ = charcha.length();
+                            out.writeInt(lenQ);
+                            out.writeChars(charcha);
+                            sleep(50);
+
+                        } else {
+                            System.out.println("P: " + this.idx + "reply from dynamic cache");
+                            System.out.println("P: " + this.idx + " writing: " + resultadoDinamico);
+
+                            dinamico.InsertarEnCache(query, resultadoDinamico);
+                            System.out.println("así quedó: ");
+                            dinamico.imprimir();
+                            System.out.println("Tamaño: "+resultadoDinamico.length());
+                            out.writeInt(resultadoDinamico.length());
+                            out.writeChars(resultadoDinamico);
+                            out.flush();
+                            System.out.println("P: " + this.idx + " done");
+                            sleep(50);
+                        }
+
+                    } else {
+                        //Respondiendo al padre
+                        System.out.println("P: " + this.idx + "reply from static cache");
+                        System.out.println("P :" + this.idx + " writing: " + resultadoEstatico);
+
+                        dinamico.InsertarEnCache(query, resultadoEstatico);
+                        System.out.println("así quedó: ");
+                        dinamico.imprimir();
+                        out.writeInt(resultadoEstatico.length());
+                        out.writeChars(resultadoEstatico);
+                        out.flush();
+                        System.out.println("P: " + this.idx + " done");
+                        sleep(50);
+                    }
+                    sleep(50);
+                    System.out.println("P :" + this.idx + " exiting");
+                }
             } catch (IOException e) {
                 System.out.println("Error: " + e);
             } catch (InterruptedException ex) {
                 Logger.getLogger(DistributedCache.class.getName()).log(Level.SEVERE, null, ex);
             }
+            
         }
     }
 
