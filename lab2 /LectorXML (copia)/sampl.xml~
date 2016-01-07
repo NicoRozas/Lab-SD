@@ -1,0 +1,35 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<catalog>
+   <book id="bk01">
+      <author>Gambardella, Matthew</author>
+      <title>TEXTO1</title>
+      <genre>Computer</genre>
+      <price>44.95</price>
+      <publish_date>2000-10-01</publish_date>
+      <description>An in-depth look at creating applications
+      with XML.</description>
+      <text xml:space="preserve">hola estoy acá estoy</text>
+   </book>
+   <book id="bk01">
+      <author>Gambardella, Matthew</author>
+      <title>TEXTO2</title>
+      <genre>Computer</genre>
+      <price>44.95</price>
+      <publish_date>2000-10-01</publish_date>
+      <description>An in-depth look at creating applications
+      with XML.</description>
+      <text xml:space="preserve">hola hola estoy acá</text>
+   </book>
+<book id="bk01">
+      <author>Gambardella, Matthew</author>
+      <title>TEXTO3</title>
+      <genre>Computer</genre>
+      <price>44.95</price>
+      <publish_date>2000-10-01</publish_date>
+      <description>An in-depth look at creating applications
+      with XML.</description>
+      <text xml:space="preserve">hola estoy acá acá co co</text>
+   </book>
+</catalog>
+
+
