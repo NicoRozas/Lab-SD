@@ -1,0 +1,30 @@
+<?php
+
+class texto{
+	
+	public function obtener(){
+		$busqueda= $_GET['busqueda'];
+		echo $busqueda;
+	}
+}
+
+
+
+$texto = new texto();
+?>
+
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title> probando </title>
+</head>
+<body>
+<?php 
+
+	$contenido = file_get_contents("https://es.wikipedia.org/wiki/Chile");
+//	echo $contenido;
+
+?>
+</body>
+</html>
