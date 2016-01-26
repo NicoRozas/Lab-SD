@@ -1,0 +1,4 @@
+							*****README******
+
+Para iniciar los programas, primero se debe ejecutar la clase StaxLecto.java que se encuentra en el proyecto lectorXML, luego de que se cargue la base de datos, se debe proceder a ejecutar el archivo padre.java del proyecto cacheService, luego se debe proceder a ejecutar el archivo servidor.java del proyecto IndexService, así se debe proceder a ejecutar el archivo frontService.java del proyecto frontService, y finalmente se debe ejecutar el archivo rest.java del proyecto rest. 
+Una vez realizado esto se debe proceder a cargar el servidor apache donde se encuentra la vista, esta carpeta "SD" debe ser pegada en los documentos del servidor, en el caso de lampp, se debe pegar en la carpeta htdocs, ya iniciado el servidor se debe proceder a abrir la vista en localhost/SD la cual cargará la página, así se puede proceder a realizar las busquedas correspondientes.
